@@ -1,17 +1,30 @@
 
-import mongoose,{isValidObjectId} from "mongoose"
-import {Comment} from "../models/comment.model.js"
+import mongoose, { isValidObjectId } from "mongoose"
+import { Comment } from "../models/comment.model.js"
 import { Video } from "../models/video.model.js"
-import {ApiError} from "../utils/ApiError.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import { ApiError } from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
-    const {videoId} = req.params
-    const {page = 1, limit = 10} = req.query
+    const { videoId } = req.params
+    const { page = 1, limit = 10 } = req.query
+    try {
 
-    
+        const comments = await Comment.find({ video: videoId }).skip(page * 10 - limit).limit(parseInt(limit))
+
+        if (!comments) {
+            throw new ApiError(401, "No Comments found")
+        }
+
+        return res.status(201).json(
+            new ApiResponse(201, comments, "Comments found")
+        )
+    } catch (error) {
+        throw new ApiError(501, "something went wrong while fetching all comments")
+    }
+
 
 })
 
@@ -119,8 +132,8 @@ const deleteComment = asyncHandler(async (req, res) => {
 
 
 export {
-    getVideoComments, 
-    addComment, 
+    getVideoComments,
+    addComment,
     updateComment,
-     deleteComment
-    }
+    deleteComment
+}
